@@ -19,7 +19,7 @@ export function ProductCard({ product }) {
   return (
     <article className="panel overflow-hidden">
       <div className="aspect-[4/3] bg-gray-100">
-        <ProductImage src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+        <ProductImage src={product.imageUrl} alt={product.name} className="h-full w-full object-contain" />
       </div>
       <div className="space-y-3 p-4">
         <div>

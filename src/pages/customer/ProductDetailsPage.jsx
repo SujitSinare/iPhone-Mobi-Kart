@@ -34,7 +34,7 @@ export function ProductDetailsPage() {
   return (
     <section className="page-shell grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-soft">
-        <ProductImage src={product.imageUrl} alt={product.name} className="h-full min-h-96 w-full object-cover" />
+        <ProductImage src={product.imageUrl} alt={product.name} className="h-full min-h-96 w-full object-contain" />
       </div>
       <div className="space-y-5">
         <div>

@@ -56,7 +56,7 @@ export function CartPage() {
         <div className="space-y-4">
           {enrichedCartItems.map((item) => (
             <article key={item.id} className="panel grid gap-4 p-4 sm:grid-cols-[7rem_1fr_auto] sm:items-center">
-              <ProductImage src={item.imageUrl} alt={item.name} className="h-28 w-full rounded-md object-cover sm:w-28" />
+              <ProductImage src={item.imageUrl} alt={item.name} className="h-28 w-full rounded-md object-contain sm:w-28" />
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-wide text-accent">{item.brand}</p>
                 <h2 className="mt-1 text-lg font-bold text-ink">{item.name}</h2>

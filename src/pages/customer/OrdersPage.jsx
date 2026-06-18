@@ -53,7 +53,7 @@ export function OrdersPage() {
                 <div className="space-y-3">
                   {order.items.map((item) => (
                     <div key={item.id} className="grid gap-3 rounded-md border border-gray-100 p-3 sm:grid-cols-[5rem_1fr_auto] sm:items-center">
-                      <ProductImage src={item.imageUrl} alt={item.name} className="h-20 w-full rounded-md object-cover sm:w-20" />
+                      <ProductImage src={item.imageUrl} alt={item.name} className="h-20 w-full rounded-md object-contain sm:w-20" />
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wide text-accent">{item.brand}</p>
                         <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
