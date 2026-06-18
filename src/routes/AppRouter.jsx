@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
       { path: '/admin/login', element: <AdminLoginPage /> },
       { path: '/products', element: <ProductsPage /> },
       { path: '/products/:id', element: <ProductDetailsPage /> },
-      { path: '/cart', element: <CartPage /> },
+      { path: '/cart', element: <CartPage /> }
     ],
   },
   {
@@ -39,7 +39,7 @@ export const router = createBrowserRouter([
           { path: '/dashboard', element: <CustomerDashboardPage /> },
           { path: '/checkout', element: <CheckoutPage /> },
           { path: '/orders', element: <OrdersPage /> },
-          { path: '/profile', element: <ProfilePage /> },
+          { path: '/profile', element: <ProfilePage /> }
         ],
       },
     ],
@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
         element: <AppLayout role="admin" />,
         children: [
           { path: '/admin/dashboard', element: <AdminDashboardPage /> },
-          { path: '/admin/products', element: <AdminProductsPage /> },
+          { path: '/admin/products', element: <AdminProductsPage /> }
         ],
       },
     ],
