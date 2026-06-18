@@ -8,6 +8,7 @@ export function ProductDetailsPage() {
   const dispatch = useDispatch();
   const [added, setAdded] = useState(false);
   const { id } = useParams();
+  const cartItems = useSelector((state) => state.cart.items.find((item) => item.id === id));
   const product = useSelector((state) => state.products.items.find((item) => item.id === id));
 
   if (!product) {
@@ -48,7 +49,7 @@ export function ProductDetailsPage() {
         <button
           className="btn-primary disabled:cursor-not-allowed disabled:bg-gray-300"
           type="button"
-          disabled={isOutOfStock}
+          disabled={isOutOfStock || (cartItems?.quantity >= product.stock)}
           onClick={handleAddToCart}
         >
           {isOutOfStock ? 'Out of Stock' : added ? 'Added to Cart' : 'Add to Cart'}

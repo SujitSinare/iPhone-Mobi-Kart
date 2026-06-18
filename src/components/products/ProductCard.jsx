@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { ProductImage } from '../common/ProductImage.jsx';
 import { addToCart } from '../../store/slices/cartSlice.js';
+import { ProductImage } from '../common/ProductImage.jsx';
 
 export function ProductCard({ product }) {
   const dispatch = useDispatch();
   const [added, setAdded] = useState(false);
   const isOutOfStock = product.stock <= 0;
+  const cartItems = useSelector((state) => state.cart.items.find((item) => item.id === product.id));
+
   const handleAddToCart = () => {
     dispatch(addToCart({ product, quantity: 1 }));
     setAdded(true);
@@ -36,7 +38,7 @@ export function ProductCard({ product }) {
         <button
           className="btn-primary w-full disabled:cursor-not-allowed disabled:bg-gray-300"
           type="button"
-          disabled={isOutOfStock}
+          disabled={isOutOfStock || (cartItems?.quantity >= product.stock)}
           onClick={handleAddToCart}
         >
           {isOutOfStock ? 'Out of Stock' : added ? 'Added to Cart' : 'Add to Cart'}
