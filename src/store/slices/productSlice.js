@@ -21,7 +21,7 @@ const loadProducts = () => {
     return product;
   });
   const storedProductIds = new Set(storedProducts.map((product) => product.id));
-  const missingSeedProducts = seedProducts.filter((product) => !storedProductIds.has(product.id));
+  const missingSeedProducts = []; //seedProducts.filter((product) => !storedProductIds.has(product.id));
   const products = [...migratedStoredProducts, ...missingSeedProducts];
 
   if (missingSeedProducts.length > 0 || migratedStoredProducts.some((product, index) => product !== storedProducts[index])) {
