@@ -23,8 +23,16 @@ export function Navbar() {
   return (
     <header className="border-b border-gray-200 bg-white">
       <nav className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to={isAuthenticated ? (role === 'admin' ? '/admin/dashboard' : '/dashboard') : '/'} className="text-lg font-bold text-ink">
-          iPhone Mobi Kart
+        <Link
+          to={isAuthenticated ? (role === 'admin' ? '/admin/dashboard' : '/dashboard') : '/'}
+          className="flex items-center gap-2 text-lg font-bold text-ink"
+        >
+          <img
+            src="https://www.apple.com/ac/globalfooter/8/en_US/assets/ac-footer/breadcrumbs/apple/icon_large.svg"
+            alt="Apple Logo"
+            className="w-8 h-8"
+          />
+          <span>iPhone Mobi Kart</span>
         </Link>
         {role !== 'admin' ? (
           <div className="hidden items-center gap-6 md:flex">
