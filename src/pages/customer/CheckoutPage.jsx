@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { Country, State } from 'country-state-city';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
@@ -12,6 +13,10 @@ export function CheckoutPage() {
   const cartItems = useSelector((state) => state.cart.items);
   const products = useSelector((state) => state.products.items);
   const currentUser = useSelector((state) => state.auth.currentUser);
+  const [country, setCountry] = useState('IN');
+  const [states, setStates] = useState([]);
+  const countries = Country.getAllCountries();
+
   const [formData, setFormData] = useState({
     fullName: currentUser?.name || '',
     mobileNumber: currentUser?.mobileNumber || '',
@@ -20,14 +25,24 @@ export function CheckoutPage() {
     landmark: '',
     city: '',
     state: '',
-    country: 'India',
+    country: 'IN',
     pincode: '',
   });
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    handleCountryChange("IN")
+  }, []);
+
   const cartTotal = useMemo(
     () => cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
     [cartItems],
   );
+
+  const handleCountryChange = (code) => {
+    setCountry(code);
+    setStates(State.getStatesOfCountry(code));
+  };
 
   const handleChange = (event) => {
     setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -139,9 +154,39 @@ export function CheckoutPage() {
             value={formData.landmark}
             onChange={handleChange}
           />
-          <input className="input-field" name="city" placeholder="City" value={formData.city} onChange={handleChange} required />
-          <input className="input-field" name="state" placeholder="State" value={formData.state} onChange={handleChange} required />
-          <input className="input-field" name="country" placeholder="Country" value={formData.country} onChange={handleChange} required />
+          <input
+            className="input-field"
+            name="city"
+            placeholder="City"
+            value={formData.city}
+            onChange={handleChange}
+            required />
+          <select
+            className="input-field"
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            required>
+            <option value="">Select State</option>
+            {states.map((s) => (
+              <option key={s.isoCode} value={s.isoCode}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <select
+            className="input-field"
+            name="country"
+            value={formData.country}
+            onChange={(e) => { handleCountryChange(e.target.value); handleChange(e) }}
+            required>
+            <option value="">Select Country</option>
+            {countries.map((c) => (
+              <option key={c.isoCode} value={c.isoCode}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <input
             className="input-field sm:col-span-2"
             name="pincode"
