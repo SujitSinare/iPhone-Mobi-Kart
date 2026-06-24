@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink } from 'react-router-dom';
 import { logout } from '../../store/slices/authSlice.js';
@@ -18,6 +19,7 @@ export function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
+    toast.success('You have been logged out successfully.');
   };
 
   return (

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { AuthPageShell } from '../../components/layout/AuthPageShell.jsx';
@@ -26,6 +27,7 @@ export function RegisterPage() {
   useEffect(() => {
     if (isAuthenticated && role === 'customer') {
       navigate('/dashboard', { replace: true });
+      toast.success('Registration successful! Welcome to iPhone Mobi Kart.');
     }
   }, [isAuthenticated, navigate, role]);
 
@@ -123,6 +125,8 @@ export function RegisterPage() {
             placeholder="Mobile Number"
             value={formData.mobileNumber}
             onChange={handleChange}
+            minLength="10"
+            maxLength="10"
             required
           />
           <input

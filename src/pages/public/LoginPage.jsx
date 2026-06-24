@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthPageShell } from '../../components/layout/AuthPageShell.jsx';
 import { clearAuthError, loginCustomer } from '../../store/slices/authSlice.js';
 
@@ -19,6 +19,7 @@ export function LoginPage() {
   useEffect(() => {
     if (isAuthenticated && role === 'customer') {
       navigate(location.state?.from?.pathname || '/dashboard', { replace: true });
+      toast.success('Login successful! Welcome back to iPhone Mobi Kart.');
     }
   }, [isAuthenticated, location.state, navigate, role]);
 

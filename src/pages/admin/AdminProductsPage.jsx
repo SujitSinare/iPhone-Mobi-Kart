@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
 import { Modal } from '../../components/common/Modal.jsx';
-import { addProduct, deleteProduct, updateProduct, updateStock } from '../../store/slices/productSlice.js';
+import { addProduct, deleteProduct, updateProduct } from '../../store/slices/productSlice.js';
 
 const PRODUCTS_PER_PAGE = 5;
 
@@ -87,8 +88,10 @@ export function AdminProductsPage() {
 
     if (editingProductId) {
       dispatch(updateProduct({ ...payload, id: editingProductId }));
+      toast.success('Product updated successfully.');
     } else {
       dispatch(addProduct(payload));
+      toast.success('Product added successfully.');
     }
 
     closeModal();
@@ -106,10 +109,6 @@ export function AdminProductsPage() {
       category: product.category,
     });
     setIsModalOpen(true);
-  };
-
-  const handleStockChange = (product, stock) => {
-    dispatch(updateStock({ id: product.id, stock }));
   };
 
   const handleSearchChange = (event) => {
@@ -280,6 +279,7 @@ export function AdminProductsPage() {
                   onClick={() => {
                     dispatch(deleteProduct(productToDelete.id));
                     setProductToDelete(null);
+                    toast.success('Product deleted successfully.');
                   }}
                 >
                   Delete

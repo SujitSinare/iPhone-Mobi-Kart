@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthPageShell } from '../../components/layout/AuthPageShell.jsx';
@@ -18,6 +19,7 @@ export function AdminLoginPage() {
   useEffect(() => {
     if (isAuthenticated && role === 'admin') {
       navigate(location.state?.from?.pathname || '/admin/dashboard', { replace: true });
+      toast.success('Admin login successful! Welcome to the iPhone Mobi Kart admin console.');
     }
   }, [isAuthenticated, location.state, navigate, role]);
 

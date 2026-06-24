@@ -1,5 +1,6 @@
 import { Country, State } from 'country-state-city';
 import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
@@ -89,6 +90,10 @@ export function CheckoutPage() {
     );
     dispatch(reduceStockForOrder(cartItems));
     dispatch(clearCart());
+    toast.success('Order placed successfully!', {
+      duration: 2000,
+      position: 'top-right',
+    });
     navigate('/dashboard', { replace: true });
   };
 

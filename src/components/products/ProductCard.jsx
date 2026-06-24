@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { addToCart } from '../../store/slices/cartSlice.js';
@@ -13,6 +14,10 @@ export function ProductCard({ product }) {
   const handleAddToCart = () => {
     dispatch(addToCart({ product, quantity: 1 }));
     setAdded(true);
+    toast.success(`Added to cart: ${product.name}`, {
+      duration: 2000,
+      position: 'top-right',
+    });
     window.setTimeout(() => setAdded(false), 1600);
   };
 
