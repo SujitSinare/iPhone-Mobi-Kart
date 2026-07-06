@@ -1,0 +1,12 @@
+export default () => ({
+  port: parseInt(process.env.PORT, 10) || 3000,
+  database: {
+    uri: process.env.MONGODB_URI,
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET,
+    expiresIn: process.env.JWT_EXPIRES_IN,
+    refreshSecret: process.env.REFRESH_SECRET,
+    refreshExpiresIn: process.env.REFRESH_EXPIRES_IN,
+  },
+});
