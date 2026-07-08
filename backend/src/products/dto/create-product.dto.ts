@@ -29,7 +29,7 @@ export class CreateProductDto {
   @ApiProperty({ example: 'A3106', description: 'Product hardware model code' })
   @IsString()
   @IsNotEmpty()
-  model: string;
+  phoneModel: string;
 
   @ApiProperty({
     example: 'Featuring a strong and lightweight titanium design with new contoured edges.',

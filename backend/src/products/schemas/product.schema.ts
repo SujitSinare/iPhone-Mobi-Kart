@@ -13,7 +13,7 @@ export class Product extends Document {
   category: string;
 
   @Prop({ required: true, trim: true })
-  model: string;
+  phoneModel: string;
 
   @Prop({ required: true, trim: true })
   description: string;
@@ -62,6 +62,6 @@ ProductSchema.index({ createdAt: -1 });
 ProductSchema.index({
   name: 'text',
   brand: 'text',
-  model: 'text',
+  phoneModel: 'text',
   description: 'text',
 });

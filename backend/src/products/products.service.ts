@@ -58,7 +58,7 @@ export class ProductsService {
       filterQuery.$or = [
         { name: { $regex: search, $options: 'i' } },
         { brand: { $regex: search, $options: 'i' } },
-        { model: { $regex: search, $options: 'i' } },
+        { phoneModel: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
       ];
     }
