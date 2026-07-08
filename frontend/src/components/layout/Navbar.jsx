@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink } from 'react-router-dom';
-import { logout } from '../../store/slices/authSlice.js';
+import { logout, fetchProfile } from '../../store/slices/authSlice.js';
 import { fetchProducts } from '../../store/slices/productSlice.js';
 import { fetchCart } from '../../store/slices/cartSlice.js';
 import { fetchOrders } from '../../store/slices/orderSlice.js';
@@ -27,6 +27,7 @@ export function Navbar() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      dispatch(fetchProfile());
       dispatch(fetchOrders());
       if (role === 'customer') {
         dispatch(fetchCart());

@@ -65,8 +65,8 @@ export class OrdersService {
         ? (item.productId as any)._id.toString()
         : item.productId.toString();
       const product = await this.productsService.findById(pId);
-      product.stock -= item.quantity;
-      await product.save();
+      const newStock = Math.max(0, product.stock - item.quantity);
+      await this.productsService.update(pId, { stock: newStock } as any);
     }
 
     // Generate unique order number: ORD-YYYYMMDD-XXXXXX
@@ -126,8 +126,8 @@ export class OrdersService {
           ? (item.productId as any)._id.toString()
           : item.productId.toString();
         const product = await this.productsService.findById(pId);
-        product.stock += item.quantity;
-        await product.save();
+        const newStock = product.stock + item.quantity;
+        await this.productsService.update(pId, { stock: newStock } as any);
       } catch (e) {
         // If product was deleted since the order, skip gracefully
       }

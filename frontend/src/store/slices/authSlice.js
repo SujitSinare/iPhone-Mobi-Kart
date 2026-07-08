@@ -1,6 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '../../services/auth.service.js';
 
+const decodeJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
 export const registerCustomer = createAsyncThunk(
   'auth/registerCustomer',
   async (userData, { rejectWithValue }) => {
@@ -63,10 +79,39 @@ export const updateCustomerProfile = createAsyncThunk(
   }
 );
 
+export const fetchProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authService.getProfile();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to fetch profile.');
+    }
+  }
+);
+
+// Initialize auth state synchronously from storage JWT payload
+const token = localStorage.getItem('imk_token') || '';
+let initialUser = null;
+let initialRole = null;
+let initialIsAuthenticated = false;
+
+if (token) {
+  const decoded = decodeJwt(token);
+  if (decoded && decoded.exp * 1000 > Date.now()) {
+    initialUser = { id: decoded.sub, email: decoded.email };
+    initialRole = decoded.role === 'ADMIN' ? 'admin' : 'customer';
+    initialIsAuthenticated = true;
+  } else {
+    localStorage.removeItem('imk_token');
+  }
+}
+
 const initialState = {
-  currentUser: null,
-  role: null,
-  isAuthenticated: false,
+  currentUser: initialUser,
+  role: initialRole,
+  isAuthenticated: initialIsAuthenticated,
   status: 'idle',
   error: null,
 };
@@ -166,6 +211,20 @@ const authSlice = createSlice({
       .addCase(updateCustomerProfile.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
+      })
+
+      // Fetch Profile
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.currentUser = mapUserFromBackend(action.payload);
+        state.isAuthenticated = true;
+        state.role = action.payload.role === 'ADMIN' ? 'admin' : 'customer';
+        state.error = null;
+      })
+      .addCase(fetchProfile.rejected, (state) => {
+        state.currentUser = null;
+        state.role = null;
+        state.isAuthenticated = false;
+        state.status = 'idle';
       });
   },
 });

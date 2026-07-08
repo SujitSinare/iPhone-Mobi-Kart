@@ -39,6 +39,7 @@ const mapOrderResponse = (order, currentUser) => {
 
   return {
     id: order.orderNumber || order._id,
+    userId: order.userId?._id || order.userId || currentUser?.id,
     status: order.orderStatus || 'Pending',
     createdAt: order.createdAt,
     total: order.totalAmount || 0,

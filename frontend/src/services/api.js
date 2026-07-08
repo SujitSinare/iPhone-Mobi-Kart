@@ -1,9 +1,14 @@
 import axios from 'axios';
 
-let authToken = '';
+let authToken = localStorage.getItem('imk_token') || '';
 
 export const setAuthToken = (token) => {
   authToken = token;
+  if (token) {
+    localStorage.setItem('imk_token', token);
+  } else {
+    localStorage.removeItem('imk_token');
+  }
 };
 
 export const getAuthToken = () => {
