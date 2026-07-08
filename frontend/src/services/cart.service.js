@@ -27,12 +27,12 @@ export const cartService = {
   },
 
   async addItem(productId, quantity = 1) {
-    const cart = await api.post('/cart', { productId, quantity });
+    const cart = await api.post('/cart', { productId, quantity: Number(quantity) });
     return mapCartResponse(cart);
   },
 
   async updateQuantity(productId, quantity) {
-    const cart = await api.patch(`/cart/${productId}`, { quantity });
+    const cart = await api.patch(`/cart/${productId}`, { quantity: Number(quantity) });
     return mapCartResponse(cart);
   },
 

@@ -30,9 +30,12 @@ export class CartService {
       throw new BadRequestException('Operation failed: Product is not available');
     }
 
-    const cartItemIndex = cart.products.findIndex(
-      (item) => item.productId.toString() === productId
-    );
+    const cartItemIndex = cart.products.findIndex((item) => {
+      const id = item.productId && (item.productId as any)._id
+        ? (item.productId as any)._id.toString()
+        : item.productId.toString();
+      return id === productId;
+    });
 
     let targetQuantity = quantity;
     if (cartItemIndex > -1) {
@@ -67,9 +70,12 @@ export class CartService {
     const cart = await this.getOrCreateCart(userId);
     const { quantity } = updateQuantityDto;
 
-    const cartItemIndex = cart.products.findIndex(
-      (item) => item.productId.toString() === productId
-    );
+    const cartItemIndex = cart.products.findIndex((item) => {
+      const id = item.productId && (item.productId as any)._id
+        ? (item.productId as any)._id.toString()
+        : item.productId.toString();
+      return id === productId;
+    });
 
     if (cartItemIndex === -1) {
       throw new NotFoundException('Operation failed: Product not found in cart');
@@ -91,9 +97,12 @@ export class CartService {
   async removeItem(userId: string, productId: string): Promise<Cart> {
     const cart = await this.getOrCreateCart(userId);
 
-    const cartItemIndex = cart.products.findIndex(
-      (item) => item.productId.toString() === productId
-    );
+    const cartItemIndex = cart.products.findIndex((item) => {
+      const id = item.productId && (item.productId as any)._id
+        ? (item.productId as any)._id.toString()
+        : item.productId.toString();
+      return id === productId;
+    });
 
     if (cartItemIndex === -1) {
       throw new NotFoundException('Operation failed: Product not found in cart');
@@ -120,7 +129,10 @@ export class CartService {
     let total = 0;
 
     for (const item of cart.products) {
-      const product = await this.productsService.findById(item.productId.toString());
+      const pId = item.productId && (item.productId as any)._id
+        ? (item.productId as any)._id.toString()
+        : item.productId.toString();
+      const product = await this.productsService.findById(pId);
       if (product) {
         item.price = product.price;
         totalQty += item.quantity;

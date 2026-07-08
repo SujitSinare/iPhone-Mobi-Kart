@@ -33,7 +33,10 @@ export class OrdersService {
 
     // Verify stock and check availability for all items first
     for (const item of cart.products) {
-      const product = await this.productsService.findById(item.productId.toString());
+      const pId = item.productId && (item.productId as any)._id
+        ? (item.productId as any)._id.toString()
+        : item.productId.toString();
+      const product = await this.productsService.findById(pId);
 
       if (!product.isAvailable) {
         throw new BadRequestException(`Checkout failed: Product "${product.name}" is no longer available`);
@@ -58,7 +61,10 @@ export class OrdersService {
 
     // Deduct stock levels
     for (const item of cart.products) {
-      const product = await this.productsService.findById(item.productId.toString());
+      const pId = item.productId && (item.productId as any)._id
+        ? (item.productId as any)._id.toString()
+        : item.productId.toString();
+      const product = await this.productsService.findById(pId);
       product.stock -= item.quantity;
       await product.save();
     }
@@ -116,7 +122,10 @@ export class OrdersService {
     // Restore stock levels
     for (const item of order.items) {
       try {
-        const product = await this.productsService.findById(item.productId.toString());
+        const pId = item.productId && (item.productId as any)._id
+          ? (item.productId as any)._id.toString()
+          : item.productId.toString();
+        const product = await this.productsService.findById(pId);
         product.stock += item.quantity;
         await product.save();
       } catch (e) {
