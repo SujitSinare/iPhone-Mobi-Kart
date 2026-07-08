@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, NavLink } from 'react-router-dom';
 import { logout } from '../../store/slices/authSlice.js';
+import { fetchProducts } from '../../store/slices/productSlice.js';
+import { fetchCart } from '../../store/slices/cartSlice.js';
+import { fetchOrders } from '../../store/slices/orderSlice.js';
 
 const navItems = [
   { to: '/products', label: 'Products' },
@@ -16,6 +20,19 @@ export function Navbar() {
   const cartCount = useSelector((state) =>
     state.cart.items.reduce((total, item) => total + Number(item.quantity || 0), 0),
   );
+
+  useEffect(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchOrders());
+      if (role === 'customer') {
+        dispatch(fetchCart());
+      }
+    }
+  }, [dispatch, isAuthenticated, role]);
 
   const handleLogout = () => {
     dispatch(logout());

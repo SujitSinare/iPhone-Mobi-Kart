@@ -1,119 +1,171 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { STORAGE_KEYS } from '../../constants/storageKeys.js';
-import { seedProducts } from '../../data/seedProducts.js';
-import { loadFromStorage, saveToStorage } from '../../utils/localStorage.js';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { productService } from '../../services/product.service.js';
+import { adminService } from '../../services/admin.service.js';
 
-const loadProducts = () => {
-  const storedProducts = loadFromStorage(STORAGE_KEYS.products, []);
-
-  if (storedProducts.length === 0) {
-    return seedProducts;
-  }
-
-  const seedProductMap = new Map(seedProducts.map((product) => [product.id, product]));
-  const migratedStoredProducts = storedProducts.map((product) => {
-    const seedProduct = seedProductMap.get(product.id);
-
-    if (seedProduct && product.imageUrl?.includes('images.unsplash.com')) {
-      return { ...product, imageUrl: seedProduct.imageUrl };
+export const fetchProducts = createAsyncThunk(
+  'products/fetchProducts',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await productService.getAllProducts();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to fetch products.');
     }
-
-    return product;
-  });
-  const storedProductIds = new Set(storedProducts.map((product) => product.id));
-  const missingSeedProducts = []; //seedProducts.filter((product) => !storedProductIds.has(product.id));
-  const products = [...migratedStoredProducts, ...missingSeedProducts];
-
-  if (missingSeedProducts.length > 0 || migratedStoredProducts.some((product, index) => product !== storedProducts[index])) {
-    saveToStorage(STORAGE_KEYS.products, products);
   }
+);
 
-  return products;
-};
+export const addProduct = createAsyncThunk(
+  'products/addProduct',
+  async (productData, { rejectWithValue }) => {
+    try {
+      const response = await adminService.createProduct(productData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to add product.');
+    }
+  }
+);
+
+export const updateProduct = createAsyncThunk(
+  'products/updateProduct',
+  async (productData, { rejectWithValue }) => {
+    try {
+      const response = await adminService.updateProduct(productData.id, productData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to update product.');
+    }
+  }
+);
+
+export const deleteProduct = createAsyncThunk(
+  'products/deleteProduct',
+  async (id, { rejectWithValue }) => {
+    try {
+      await adminService.deleteProduct(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to delete product.');
+    }
+  }
+);
+
+export const updateStock = createAsyncThunk(
+  'products/updateStock',
+  async ({ id, stock }, { rejectWithValue }) => {
+    try {
+      const response = await adminService.updateStock(id, stock);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to update stock.');
+    }
+  }
+);
 
 const initialState = {
-  items: loadProducts(),
+  items: [],
   status: 'idle',
   error: null,
 };
-
-const createProductId = (name) =>
-  name
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '') || `product-${Date.now()}`;
 
 const productSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    setProducts: (state, action) => {
-      state.items = action.payload;
-      saveToStorage(STORAGE_KEYS.products, state.items);
-    },
-    addProduct: (state, action) => {
-      const baseId = createProductId(action.payload.name);
-      const idExists = state.items.some((product) => product.id === baseId);
-      const product = {
-        ...action.payload,
-        id: action.payload.id || (idExists ? `${baseId}-${Date.now()}` : baseId),
-        price: Number(action.payload.price),
-        stock: Number(action.payload.stock),
-      };
-
-      state.items.push(product);
-      saveToStorage(STORAGE_KEYS.products, state.items);
-    },
-    updateProduct: (state, action) => {
-      const productIndex = state.items.findIndex((product) => product.id === action.payload.id);
-
-      if (productIndex === -1) {
-        return;
-      }
-
-      state.items[productIndex] = {
-        ...state.items[productIndex],
-        ...action.payload,
-        price: Number(action.payload.price),
-        stock: Number(action.payload.stock),
-      };
-      saveToStorage(STORAGE_KEYS.products, state.items);
-    },
-    deleteProduct: (state, action) => {
-      state.items = state.items.filter((product) => product.id !== action.payload);
-      saveToStorage(STORAGE_KEYS.products, state.items);
-    },
-    updateStock: (state, action) => {
-      const product = state.items.find((item) => item.id === action.payload.id);
-
-      if (!product) {
-        return;
-      }
-
-      product.stock = Math.max(0, Number(action.payload.stock));
-      saveToStorage(STORAGE_KEYS.products, state.items);
-    },
     reduceStockForOrder: (state, action) => {
+      // Optimistic client-side reduction, backend handles actual order stock deduction
       action.payload.forEach((orderItem) => {
         const product = state.items.find((item) => item.id === orderItem.id);
-
         if (product) {
           product.stock = Math.max(0, product.stock - Number(orderItem.quantity));
         }
       });
-
-      saveToStorage(STORAGE_KEYS.products, state.items);
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Products
+      .addCase(fetchProducts.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchProducts.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchProducts.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Add Product
+      .addCase(addProduct.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(addProduct.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items.push(action.payload);
+        state.error = null;
+      })
+      .addCase(addProduct.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Update Product
+      .addCase(updateProduct.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        const index = state.items.findIndex((p) => p.id === action.payload.id);
+        if (index > -1) {
+          state.items[index] = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(updateProduct.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Delete Product
+      .addCase(deleteProduct.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = state.items.filter((p) => p.id !== action.payload);
+        state.error = null;
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Update Stock
+      .addCase(updateStock.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(updateStock.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        const index = state.items.findIndex((p) => p.id === action.payload.id);
+        if (index > -1) {
+          state.items[index].stock = action.payload.stock;
+        }
+        state.error = null;
+      })
+      .addCase(updateStock.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
   },
 });
 
-export const {
-  setProducts,
-  addProduct,
-  updateProduct,
-  deleteProduct,
-  updateStock,
-  reduceStockForOrder,
-} = productSlice.actions;
+export const { reduceStockForOrder } = productSlice.actions;
 export default productSlice.reducer;

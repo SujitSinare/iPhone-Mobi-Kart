@@ -1,9 +1,71 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { STORAGE_KEYS } from '../../constants/storageKeys.js';
-import { loadFromStorage, saveToStorage } from '../../utils/localStorage.js';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { cartService } from '../../services/cart.service.js';
+
+export const fetchCart = createAsyncThunk(
+  'cart/fetchCart',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await cartService.getCart();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to fetch cart.');
+    }
+  }
+);
+
+export const addToCart = createAsyncThunk(
+  'cart/addToCart',
+  async ({ product, quantity = 1 }, { rejectWithValue }) => {
+    try {
+      if (product.stock <= 0) {
+        throw new Error('Product is out of stock.');
+      }
+      const response = await cartService.addItem(product.id, quantity);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || error.message || 'Failed to add item to cart.');
+    }
+  }
+);
+
+export const updateCartQuantity = createAsyncThunk(
+  'cart/updateCartQuantity',
+  async ({ id, quantity }, { rejectWithValue }) => {
+    try {
+      const response = await cartService.updateQuantity(id, quantity);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to update item quantity.');
+    }
+  }
+);
+
+export const removeFromCart = createAsyncThunk(
+  'cart/removeFromCart',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await cartService.removeItem(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to remove item from cart.');
+    }
+  }
+);
+
+export const clearCart = createAsyncThunk(
+  'cart/clearCart',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await cartService.clearCart();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Failed to clear cart.');
+    }
+  }
+);
 
 const initialState = {
-  items: loadFromStorage(STORAGE_KEYS.cart, []),
+  items: [],
   status: 'idle',
   error: null,
 };
@@ -12,58 +74,92 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    setCartItems: (state, action) => {
-      state.items = action.payload;
-      saveToStorage(STORAGE_KEYS.cart, state.items);
-    },
-    addToCart: (state, action) => {
-      const { product, quantity = 1 } = action.payload;
-      if (product.stock <= 0) {
-        return;
-      }
+    // We can define mock reducer if needed, but extraReducers will handle all updates
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Cart
+      .addCase(fetchCart.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchCart.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchCart.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
 
-      const existingItem = state.items.find((item) => item.id === product.id);
-      const requestedQuantity = Number(quantity);
+      // Add to Cart
+      .addCase(addToCart.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(addToCart.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(addToCart.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
 
-      if (existingItem) {
-        existingItem.quantity = Math.min(existingItem.quantity + requestedQuantity, product.stock);
-      } else {
-        state.items.push({
-          id: product.id,
-          name: product.name,
-          brand: product.brand,
-          price: product.price,
-          stock: product.stock,
-          imageUrl: product.imageUrl,
-          category: product.category,
-          quantity: Math.min(requestedQuantity, product.stock),
-        });
-      }
+      // Update Cart Quantity
+      .addCase(updateCartQuantity.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(updateCartQuantity.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(updateCartQuantity.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
 
-      saveToStorage(STORAGE_KEYS.cart, state.items);
-    },
-    updateCartQuantity: (state, action) => {
-      const item = state.items.find((cartItem) => cartItem.id === action.payload.id);
+      // Remove from Cart
+      .addCase(removeFromCart.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(removeFromCart.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(removeFromCart.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
 
-      if (!item) {
-        return;
-      }
-
-      const stock = Number(action.payload.stock ?? item.stock);
-      item.stock = stock;
-      item.quantity = stock <= 0 ? 0 : Math.min(Math.max(1, Number(action.payload.quantity)), stock);
-      saveToStorage(STORAGE_KEYS.cart, state.items);
-    },
-    removeFromCart: (state, action) => {
-      state.items = state.items.filter((item) => item.id !== action.payload);
-      saveToStorage(STORAGE_KEYS.cart, state.items);
-    },
-    clearCart: (state) => {
-      state.items = [];
-      saveToStorage(STORAGE_KEYS.cart, state.items);
-    },
+      // Clear Cart
+      .addCase(clearCart.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(clearCart.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(clearCart.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Clear Cart state on auth logout
+      .addCase('auth/logout/fulfilled', (state) => {
+        state.items = [];
+        state.status = 'idle';
+        state.error = null;
+      });
   },
 });
 
-export const { setCartItems, addToCart, updateCartQuantity, removeFromCart, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;

@@ -1,176 +1,174 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { adminConfig } from '../../config/admin.js';
-import { STORAGE_KEYS } from '../../constants/storageKeys.js';
-import { loadFromStorage, saveToStorage } from '../../utils/localStorage.js';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { authService } from '../../services/auth.service.js';
 
-const persistedAuth = loadFromStorage(STORAGE_KEYS.auth, {
+export const registerCustomer = createAsyncThunk(
+  'auth/registerCustomer',
+  async (userData, { rejectWithValue }) => {
+    try {
+      await authService.register(userData);
+      // Automatically log in customer after registration
+      const loginResponse = await authService.login(userData.email, userData.password);
+      return loginResponse;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Registration failed.');
+    }
+  }
+);
+
+export const loginCustomer = createAsyncThunk(
+  'auth/loginCustomer',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const response = await authService.login(email, password);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Invalid email or password.');
+    }
+  }
+);
+
+export const loginAdmin = createAsyncThunk(
+  'auth/loginAdmin',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const response = await authService.adminLogin(email, password);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Invalid admin credentials.');
+    }
+  }
+);
+
+export const logout = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      await authService.logout();
+      return null;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Logout failed.');
+    }
+  }
+);
+
+export const updateCustomerProfile = createAsyncThunk(
+  'auth/updateCustomerProfile',
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const response = await authService.updateProfile(profileData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.errorMessage || 'Profile update failed.');
+    }
+  }
+);
+
+const initialState = {
   currentUser: null,
   role: null,
   isAuthenticated: false,
-});
-
-const initialState = {
-  users: loadFromStorage(STORAGE_KEYS.users, []),
-  currentUser: persistedAuth.currentUser,
-  role: persistedAuth.role,
-  isAuthenticated: persistedAuth.isAuthenticated,
   status: 'idle',
   error: null,
 };
 
-const persistAuth = (state) => {
-  saveToStorage(STORAGE_KEYS.auth, {
-    currentUser: state.currentUser,
-    role: state.role,
-    isAuthenticated: state.isAuthenticated,
-  });
-};
-
-const createUserId = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return `user-${Date.now()}`;
-};
-
-const withoutPassword = (user) => {
-  const { password: _password, ...publicUser } = user;
-  return publicUser;
+const mapUserFromBackend = (user) => {
+  if (!user) return null;
+  return {
+    ...user,
+    id: user._id || user.id,
+    name: user.name || '',
+    email: user.email || '',
+    mobileNumber: user.mobile || user.mobileNumber || '',
+    dateOfBirth: user.dob || user.dateOfBirth || '',
+  };
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    registerCustomer: (state, action) => {
-      const normalizedEmail = action.payload.email.trim().toLowerCase();
-      const duplicateUser = state.users.some((user) => user.email === normalizedEmail);
-
-      if (duplicateUser) {
-        state.error = 'An account with this email already exists.';
-        return;
-      }
-
-      const newUser = {
-        id: createUserId(),
-        firstName: action.payload.firstName.trim(),
-        lastName: action.payload.lastName.trim(),
-        name: `${action.payload.firstName.trim()} ${action.payload.lastName.trim()}`.trim(),
-        mobileNumber: action.payload.mobileNumber.trim(),
-        email: normalizedEmail,
-        dateOfBirth: action.payload.dateOfBirth,
-        password: action.payload.password,
-        createdAt: new Date().toISOString(),
-      };
-
-      state.users.push(newUser);
-      state.currentUser = withoutPassword(newUser);
-      state.role = 'customer';
-      state.isAuthenticated = true;
-      state.status = 'succeeded';
-      state.error = null;
-      saveToStorage(STORAGE_KEYS.users, state.users);
-      persistAuth(state);
-    },
-    loginCustomer: (state, action) => {
-      const normalizedEmail = action.payload.email.trim().toLowerCase();
-      const user = state.users.find(
-        (item) => item.email === normalizedEmail && item.password === action.payload.password,
-      );
-
-      if (!user) {
-        state.error = 'Invalid email or password.';
-        return;
-      }
-
-      state.currentUser = withoutPassword(user);
-      state.role = 'customer';
-      state.isAuthenticated = true;
-      state.status = 'succeeded';
-      state.error = null;
-      persistAuth(state);
-    },
-    loginAdmin: (state, action) => {
-      const isValidAdmin =
-        action.payload.email.trim().toLowerCase() === adminConfig.email.toLowerCase() &&
-        action.payload.password === adminConfig.password;
-
-      if (!isValidAdmin) {
-        state.error = 'Invalid admin credentials.';
-        return;
-      }
-
-      state.currentUser = {
-        id: 'admin',
-        name: adminConfig.name,
-        email: adminConfig.email,
-      };
-      state.role = 'admin';
-      state.isAuthenticated = true;
-      state.status = 'succeeded';
-      state.error = null;
-      persistAuth(state);
-    },
-    logout: (state) => {
-      state.currentUser = null;
-      state.role = null;
-      state.isAuthenticated = false;
-      state.error = null;
-      persistAuth(state);
-    },
-    updateCustomerProfile: (state, action) => {
-      if (!state.currentUser || state.role !== 'customer') {
-        return;
-      }
-
-      const userIndex = state.users.findIndex((user) => user.id === state.currentUser.id);
-
-      if (userIndex === -1) {
-        return;
-      }
-
-      const updatedUser = {
-        ...state.users[userIndex],
-        firstName: action.payload.firstName.trim(),
-        lastName: action.payload.lastName.trim(),
-        name: `${action.payload.firstName.trim()} ${action.payload.lastName.trim()}`.trim(),
-        mobileNumber: action.payload.mobileNumber.trim(),
-        email: action.payload.email.trim().toLowerCase(),
-        dateOfBirth: action.payload.dateOfBirth,
-      };
-
-      const duplicateEmail = state.users.some(
-        (user) => user.id !== updatedUser.id && user.email === updatedUser.email,
-      );
-
-      if (duplicateEmail) {
-        state.error = 'Another account already uses this email.';
-        return;
-      }
-
-      if (action.payload.password) {
-        updatedUser.password = action.payload.password;
-      }
-
-      state.users[userIndex] = updatedUser;
-      state.currentUser = withoutPassword(updatedUser);
-      state.error = null;
-      saveToStorage(STORAGE_KEYS.users, state.users);
-      persistAuth(state);
-    },
     clearAuthError: (state) => {
       state.error = null;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      // Register Customer
+      .addCase(registerCustomer.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(registerCustomer.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.currentUser = mapUserFromBackend(action.payload.user);
+        state.role = 'customer';
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(registerCustomer.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Login Customer
+      .addCase(loginCustomer.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(loginCustomer.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.currentUser = mapUserFromBackend(action.payload.user);
+        state.role = 'customer';
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(loginCustomer.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Login Admin
+      .addCase(loginAdmin.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(loginAdmin.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.currentUser = mapUserFromBackend(action.payload.user);
+        state.role = 'admin';
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(loginAdmin.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+
+      // Logout
+      .addCase(logout.fulfilled, (state) => {
+        state.currentUser = null;
+        state.role = null;
+        state.isAuthenticated = false;
+        state.status = 'idle';
+        state.error = null;
+      })
+
+      // Update Customer Profile
+      .addCase(updateCustomerProfile.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(updateCustomerProfile.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.currentUser = mapUserFromBackend(action.payload);
+        state.error = null;
+      })
+      .addCase(updateCustomerProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
+  },
 });
 
-export const {
-  registerCustomer,
-  loginCustomer,
-  loginAdmin,
-  logout,
-  updateCustomerProfile,
-  clearAuthError,
-} = authSlice.actions;
+export const { clearAuthError } = authSlice.actions;
 export default authSlice.reducer;
