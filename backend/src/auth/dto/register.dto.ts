@@ -21,7 +21,7 @@ export class RegisterDto {
   @ApiPropertyOptional({ example: '1995-05-15', description: 'Date of Birth (YYYY-MM-DD)' })
   @IsOptional()
   @IsString()
-  dob?: string;
+  dateOfBirth?: string;
 
   @ApiProperty({ example: 'Password123!', description: 'Minimum 6 character password' })
   @IsString()

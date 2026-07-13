@@ -32,7 +32,7 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<User> {
-    const { email, mobile, name, dob } = updateProfileDto;
+    const { email, mobile, name, dateOfBirth } = updateProfileDto;
     
     const user = await this.usersRepository.findById(userId);
     if (!user) {
@@ -44,8 +44,8 @@ export class UsersService {
     if (name !== undefined) {
       updateData.name = name;
     }
-    if (dob !== undefined) {
-      updateData.dob = dob ? new Date(dob) : undefined;
+    if (dateOfBirth !== undefined) {
+      updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : undefined;
     }
 
     if (email !== undefined && email !== user.email) {

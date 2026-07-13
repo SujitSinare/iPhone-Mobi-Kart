@@ -6,7 +6,7 @@ export const authService = {
       name: `${userData.firstName.trim()} ${userData.lastName.trim()}`.trim(),
       mobile: userData.mobileNumber.trim(),
       email: userData.email.trim().toLowerCase(),
-      dob: userData.dateOfBirth,
+      dateOfBirth: userData.dateOfBirth,
       password: userData.password,
       role: 'CUSTOMER',
     };
@@ -91,9 +91,7 @@ export const authService = {
       payload.email = profileData.email.trim().toLowerCase();
     }
     if (profileData.dateOfBirth) {
-      payload.dob = profileData.dateOfBirth;
-    } else if (profileData.dob) {
-      payload.dob = profileData.dob;
+      payload.dateOfBirth = profileData.dateOfBirth;
     }
 
     const response = await api.patch('/users/profile', payload);

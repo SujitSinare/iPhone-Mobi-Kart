@@ -22,7 +22,7 @@ export function ProfilePage() {
     lastName: currentUser?.lastName || currentUser?.name?.split(' ').slice(1).join(' ') || '',
     mobileNumber: currentUser?.mobileNumber || '',
     email: currentUser?.email || '',
-    dateOfBirth: formatDate(currentUser?.dob || currentUser?.dateOfBirth),
+    dateOfBirth: formatDate(currentUser?.dateOfBirth),
     password: '',
   });
 
@@ -37,7 +37,7 @@ export function ProfilePage() {
       lastName: currentUser?.lastName || currentUser?.name?.split(' ').slice(1).join(' ') || '',
       mobileNumber: currentUser?.mobileNumber || '',
       email: currentUser?.email || '',
-      dateOfBirth: formatDate(currentUser?.dob || currentUser?.dateOfBirth),
+      dateOfBirth: formatDate(currentUser?.dateOfBirth),
     }));
   }, [currentUser]);
 

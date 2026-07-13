@@ -124,7 +124,7 @@ const mapUserFromBackend = (user) => {
     name: user.name || '',
     email: user.email || '',
     mobileNumber: user.mobile || user.mobileNumber || '',
-    dateOfBirth: user.dob || user.dateOfBirth || '',
+    dateOfBirth: user.dateOfBirth || '',
   };
 };
 

@@ -24,7 +24,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, mobile, password, name, dob, role } = registerDto;
+    const { email, mobile, password, name, dateOfBirth, role } = registerDto;
 
     // Check unique fields
     const emailExists = await this.usersService.findByEmail(email);
@@ -47,7 +47,7 @@ export class AuthService {
       email,
       mobile,
       password: hashedPassword,
-      dob: dob ? new Date(dob) : undefined,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
       role: role || Role.CUSTOMER,
       isActive: true,
     });
