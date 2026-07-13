@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearAuthError, updateCustomerProfile } from '../../store/slices/authSlice.js';
 
+const formatDate = (dateVal) => {
+  if (!dateVal) return '';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
+  } catch (e) {
+    return '';
+  }
+};
+
 export function ProfilePage() {
   const dispatch = useDispatch();
   const { currentUser, error } = useSelector((state) => state.auth);
@@ -11,7 +22,7 @@ export function ProfilePage() {
     lastName: currentUser?.lastName || currentUser?.name?.split(' ').slice(1).join(' ') || '',
     mobileNumber: currentUser?.mobileNumber || '',
     email: currentUser?.email || '',
-    dateOfBirth: currentUser?.dateOfBirth || '',
+    dateOfBirth: formatDate(currentUser?.dob || currentUser?.dateOfBirth),
     password: '',
   });
 
@@ -26,7 +37,7 @@ export function ProfilePage() {
       lastName: currentUser?.lastName || currentUser?.name?.split(' ').slice(1).join(' ') || '',
       mobileNumber: currentUser?.mobileNumber || '',
       email: currentUser?.email || '',
-      dateOfBirth: currentUser?.dateOfBirth || '',
+      dateOfBirth: formatDate(currentUser?.dob || currentUser?.dateOfBirth),
     }));
   }, [currentUser]);
 

@@ -46,10 +46,10 @@ export class ProductsService {
       minPrice,
       maxPrice,
       isAvailable,
-      page,
-      limit,
-      sortBy,
-      sortOrder,
+      page = 1,
+      limit = 10,
+      sortBy = 'name',
+      sortOrder = 'asc',
     } = getProductsDto;
 
     const filterQuery: any = {};
