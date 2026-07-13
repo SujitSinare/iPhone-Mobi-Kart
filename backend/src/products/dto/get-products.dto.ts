@@ -62,13 +62,13 @@ export class GetProductsDto {
   @Min(1)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ default: 'createdAt', description: 'Product field to sort by' })
+  @ApiPropertyOptional({ default: 'name', description: 'Product field to sort by' })
   @IsOptional()
   @IsString()
-  sortBy?: string = 'createdAt';
+  sortBy?: string = 'name';
 
-  @ApiPropertyOptional({ default: 'desc', description: 'Sorting order direction' })
+  @ApiPropertyOptional({ default: 'asc', description: 'Sorting order direction' })
   @IsOptional()
   @IsEnum(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc' = 'desc';
+  sortOrder?: 'asc' | 'desc' = 'asc';
 }
