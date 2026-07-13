@@ -29,7 +29,8 @@ export class CartsRepository {
 
   async save(cart: Cart): Promise<Cart> {
     // If the document is initialized as a Mongoose document, we can call save.
-    return cart.save();
+    const savedCart = await cart.save();
+    return savedCart.populate('products.productId');
   }
 
   async deleteByUserId(userId: string): Promise<any> {
