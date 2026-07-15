@@ -1,7 +1,22 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import { ProductImage } from '../../components/common/ProductImage.jsx';
 
 export function HomePage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, role } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [isAuthenticated, role, navigate]);
+
   return (
     <section className="page-shell h-[calc(100vh-65px)] grid gap-8 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
       <div className="space-y-6">

@@ -9,7 +9,7 @@ export function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { error, isAuthenticated, role } = useSelector((state) => state.auth);
+  const { error, isAuthenticated, role, status } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({ email: '', password: '' });
 
   useEffect(() => {
@@ -17,11 +17,17 @@ export function LoginPage() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated && role === 'customer') {
-      navigate(location.state?.from?.pathname || '/dashboard', { replace: true });
-      toast.success('Login successful! Welcome back to iPhone Mobi Kart.');
+    if (isAuthenticated) {
+      if (role === 'customer') {
+        navigate(location.state?.from?.pathname || '/dashboard', { replace: true });
+        if (status === 'succeeded') {
+          toast.success('Login successful! Welcome back to iPhone Mobi Kart.');
+        }
+      } else if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      }
     }
-  }, [isAuthenticated, location.state, navigate, role]);
+  }, [isAuthenticated, location.state, navigate, role, status]);
 
   const handleChange = (event) => {
     setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));

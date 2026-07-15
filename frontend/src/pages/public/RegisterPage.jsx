@@ -8,7 +8,7 @@ import { clearAuthError, registerCustomer } from '../../store/slices/authSlice.j
 export function RegisterPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { error, isAuthenticated, role } = useSelector((state) => state.auth);
+  const { error, isAuthenticated, role, status } = useSelector((state) => state.auth);
   const [validationError, setValidationError] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
@@ -25,11 +25,17 @@ export function RegisterPage() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated && role === 'customer') {
-      navigate('/dashboard', { replace: true });
-      toast.success('Registration successful! Welcome to iPhone Mobi Kart.');
+    if (isAuthenticated) {
+      if (role === 'customer') {
+        navigate('/dashboard', { replace: true });
+        if (status === 'succeeded') {
+          toast.success('Registration successful! Welcome to iPhone Mobi Kart.');
+        }
+      } else if (role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, role]);
+  }, [isAuthenticated, navigate, role, status]);
 
   const handleChange = (event) => {
     setValidationError('');
